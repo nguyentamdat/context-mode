@@ -72,7 +72,7 @@ export default function (pi: ExtensionAPI) {
     const chars = Array.from(text).length;
     const marker = { type: "text" as const, text: `↳ ${chars.toLocaleString()} chars` };
     if (chars <= configuredThreshold(ctx.cwd)) {
-      return { content: [...event.content, marker] };
+      return { content: [marker, ...event.content] };
     }
 
     await mkdir(OUTPUT_DIR, { recursive: true });
