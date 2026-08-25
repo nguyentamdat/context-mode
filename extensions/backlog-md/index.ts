@@ -6,7 +6,7 @@ import { Type } from "typebox";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
-import { parseTaskList, type BacklogTask } from "./backlog-md/parser.ts";
+import { parseTaskList, type BacklogTask } from "./parser.ts";
 
 const ACTIONS = ["list", "show", "create", "update"] as const;
 const STATUSES = ["To Do", "In Progress", "Done"] as const;

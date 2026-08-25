@@ -6,6 +6,7 @@ import { join } from "node:path";
 const source = process.argv[2] ?? join(homedir(), ".pi", "agent");
 const target = join(import.meta.dirname, "..", "config");
 const files = ["backlog-md.json", "config.yml", "hindsight.json", "mcp.json", "multi-pass.json", "provider-failover.json", "settings.json"];
+const { version } = JSON.parse(await readFile(join(import.meta.dirname, "..", "package.json"), "utf8"));
 const secret = /token|secret|password|api[_-]?key|access|refresh|authorization|cookie/i;
 
 function redact(value, key = "") {
@@ -21,7 +22,7 @@ for (const file of files) {
   if (!existsSync(from)) continue;
   if (file.endsWith(".json")) {
     const config = redact(JSON.parse(await readFile(from, "utf8")));
-    if (file === "settings.json") config.packages = ["git:github.com/nguyentamdat/pitada@v0.1.2"];
+    if (file === "settings.json") config.packages = [`git:github.com/nguyentamdat/pitada@v${version}`];
     await writeFile(join(target, file), `${JSON.stringify(config, null, 2)}\n`);
   } else {
     const yaml = await readFile(from, "utf8");

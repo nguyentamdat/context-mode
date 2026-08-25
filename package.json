@@ -1,11 +1,17 @@
 {
   "name": "pitada",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Portable Pi environment bundle",
   "keywords": [
     "pi-package"
   ],
   "license": "UNLICENSED",
+  "files": [
+    "extensions",
+    "config",
+    "scripts",
+    "README.md"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -44,7 +50,12 @@
   },
   "pi": {
     "extensions": [
-      "./extensions",
+      "./extensions/backlog-md/index.ts",
+      "./extensions/cbmem/index.ts",
+      "./extensions/codex-usage-status/index.ts",
+      "./extensions/herdr-agent-state/index.ts",
+      "./extensions/local-telemetry/index.ts",
+      "./extensions/tool-output-chars/index.ts",
       "./node_modules/context-mode/build/adapters/pi/extension.js",
       "./node_modules/pi-hashline-edit-pro/index.ts",
       "./node_modules/@luxusai/pi-hindsight/extensions",
