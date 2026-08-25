@@ -57,7 +57,20 @@ export function shouldUseWindowsTcpTransport(
   const legacyOptIn = env.PI_INTERCOM_TCP?.trim().toLowerCase();
   return legacyOptIn === "1" || legacyOptIn === "true";
 }
+function tailscaleEndpoint(env: NodeJS.ProcessEnv): BrokerTcpEndpoint | undefined {
+  const host = env.PI_INTERCOM_TAILSCALE_HOST?.trim();
+  const stateId = env.PI_INTERCOM_TAILSCALE_TOKEN?.trim();
+  const port = Number(env.PI_INTERCOM_TAILSCALE_PORT ?? 43765);
+  if (!host && !stateId && !env.PI_INTERCOM_TAILSCALE_PORT) return undefined;
+  if (!host || !stateId || !Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error("Set PI_INTERCOM_TAILSCALE_HOST, PI_INTERCOM_TAILSCALE_TOKEN, and a valid PI_INTERCOM_TAILSCALE_PORT.");
+  }
+  return { transport: "tcp", host, port, stateId };
+}
 
+export function isTailscaleRemote(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(tailscaleEndpoint(env)) && env.PI_INTERCOM_TAILSCALE_BROKER !== "1";
+}
 export function getBrokerPortFilePath(intercomDir: string = getIntercomDirPath()): string {
   return join(intercomDir, "broker.port.json");
 }
@@ -78,6 +91,8 @@ export function getBrokerConnectTarget(
   env: NodeJS.ProcessEnv = process.env,
   intercomDir: string = getIntercomDirPath(getAgentDirPath(env)),
 ): BrokerConnectTarget {
+  const tailscale = tailscaleEndpoint(env);
+  if (tailscale) return tailscale;
   if (shouldUseWindowsTcpTransport(platform, env)) {
     const endpointFile = getBrokerPortFilePath(intercomDir);
     const raw = readFileSync(endpointFile, "utf-8");
@@ -108,6 +123,9 @@ export function getBrokerListenTarget(
   platform: NodeJS.Platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
 ): BrokerConnectTarget {
+  const tailscale = tailscaleEndpoint(env);
+  if (tailscale && env.PI_INTERCOM_TAILSCALE_BROKER === "1") return { ...tailscale, stateId: undefined };
+  if (tailscale) return getBrokerSocketPath(platform, getAgentDirPath(env));
   if (shouldUseWindowsTcpTransport(platform, env)) {
     return { transport: "tcp", host: INTERCOM_TCP_HOST, port: 0 };
   }

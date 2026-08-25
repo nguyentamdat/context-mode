@@ -5,6 +5,7 @@ import { Type } from "typebox";
 import { Text } from "@earendil-works/pi-tui";
 import { IntercomClient, type SendResult } from "./broker/client.ts";
 import { spawnBrokerIfNeeded } from "./broker/spawn.ts";
+import { isTailscaleRemote } from "./broker/paths.ts";
 import { SessionListOverlay } from "./ui/session-list.ts";
 import { ComposeOverlay, type ComposeResult } from "./ui/compose.ts";
 import { InlineMessageComponent } from "./ui/inline-message.ts";
@@ -1443,7 +1444,7 @@ export default function piIntercomExtension(pi: ExtensionAPI) {
       client = nextClient;
       attachClientHandlers(nextClient);
       try {
-        await spawnBrokerIfNeeded(config.brokerCommand, config.brokerArgs);
+        if (!isTailscaleRemote()) await spawnBrokerIfNeeded(config.brokerCommand, config.brokerArgs);
         await nextClient.connect(buildRegistration(), currentIntercomSessionId ?? currentSessionId);
         if (!getLiveContext(contextAtStart, generationAtStart)) {
           await nextClient.disconnect();

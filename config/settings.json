@@ -1,6 +1,6 @@
 {
   "lastChangelogVersion": "0.84.3",
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "openai-codex-3",
   "defaultModel": "gpt-5.6-terra",
   "defaultThinkingLevel": "medium",
   "terminal": {
@@ -39,6 +39,6 @@
     "openai-codex/gpt-5.6-luna"
   ],
   "packages": [
-    "git:github.com/nguyentamdat/pitada@v0.1.11"
+    "git:github.com/nguyentamdat/pitada@v0.1.12"
   ]
 }

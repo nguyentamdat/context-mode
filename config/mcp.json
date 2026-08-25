@@ -2,6 +2,12 @@
   "mcpServers": {
     "context-mode": {
       "command": "context-mode"
+    },
+    "cocos-devtools": {
+      "url": "http://100.108.131.96:3100/mcp",
+      "bearerToken": "<set-on-target>",
+      "lifecycle": "keep-alive",
+      "auth": "bearer"
     }
   }
 }
