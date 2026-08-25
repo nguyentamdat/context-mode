@@ -70,16 +70,18 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_result", async (event, ctx) => {
     const text = textFrom(event.content);
     const chars = Array.from(text).length;
-    pi.appendEntry("tool-output-chars", { chars });
-    if (chars <= configuredThreshold(ctx.cwd)) return;
+    const marker = { type: "text" as const, text: `↳ ${chars.toLocaleString()} chars` };
+    if (chars <= configuredThreshold(ctx.cwd)) {
+      return { content: [...event.content, marker] };
+    }
 
     await mkdir(OUTPUT_DIR, { recursive: true });
     const path = join(OUTPUT_DIR, `${event.toolName}-${randomUUID()}.txt`);
     await writeFile(path, text, { mode: 0o600 });
     return {
-      content: [{
-        type: "text",
-        text: `Tool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.`,
+      content: [...event.content, {
+        type: "text" as const,
+        text: `${marker.text}\nTool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.`,
       }],
     };
   });
