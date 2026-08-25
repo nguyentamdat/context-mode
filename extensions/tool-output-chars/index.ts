@@ -3,12 +3,14 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Container, Text } from "@earendil-works/pi-tui";
+import { Text } from "@earendil-works/pi-tui";
+import { join } from "node:path";
 
 const DEFAULT_MAX_CONTEXT_CHARS = 20_000;
 const OUTPUT_DIR = join(tmpdir(), "pi-tool-output");
 type OutputChars = { chars: number };
 type TurnUsage = { input: number; output: number; cached: number };
+const BUILTIN_TOOLS = new Set(["read", "bash", "powershell", "edit", "write", "grep", "find", "ls"]);
 
 function configuredThreshold(cwd: string): number {
   let value = DEFAULT_MAX_CONTEXT_CHARS;
@@ -69,18 +71,23 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_result", async (event, ctx) => {
     const text = textFrom(event.content);
     const chars = Array.from(text).length;
-    const details = event.details && typeof event.details === "object" ? { ...event.details, toolOutputChars: chars } : { toolOutputChars: chars };
-    if (chars <= configuredThreshold(ctx.cwd)) return { details };
+    const marker = { type: "text" as const, text: `↳ ${chars.toLocaleString()} chars` };
+    if (BUILTIN_TOOLS.has(event.toolName)) pi.appendEntry("tool-output-chars", { chars });
+    if (chars <= configuredThreshold(ctx.cwd)) {
+      return BUILTIN_TOOLS.has(event.toolName) ? undefined : { content: [marker, ...event.content] };
+    }
 
     await mkdir(OUTPUT_DIR, { recursive: true });
     const path = join(OUTPUT_DIR, `${event.toolName}-${randomUUID()}.txt`);
     await writeFile(path, text, { mode: 0o600 });
+    if (BUILTIN_TOOLS.has(event.toolName)) {
+      return { content: [{ type: "text" as const, text: `Tool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.` }] };
+    }
     return {
       content: [{
         type: "text" as const,
-        text: `Tool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.`,
-      }],
-      details,
+        text: `${marker.text}\nTool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.`,
+      }, ...event.content],
     };
   });
 }
