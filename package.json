@@ -1,8 +1,10 @@
 {
   "name": "pitada",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Portable Pi environment bundle",
-  "keywords": ["pi-package"],
+  "keywords": [
+    "pi-package"
+  ],
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20"
@@ -53,7 +55,8 @@
       "./node_modules/@dietrichgebert/ponytail/pi-extension/index.js",
       "./node_modules/pi-intercom/index.ts",
       "./node_modules/pi-worktrees/src/index.ts",
-      "./node_modules/pi-background-tasks/extensions"
+      "./node_modules/pi-background-tasks/extensions/anthropic-attribution.ts",
+      "./node_modules/pi-background-tasks/extensions/background-tasks.ts"
     ],
     "skills": [
       "./node_modules/context-mode/skills",
