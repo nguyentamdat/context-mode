@@ -1,0 +1,59 @@
+{
+  "name": "pi-worktrees",
+  "version": "0.1.0",
+  "description": "A polished Pi extension for creating, switching, returning from, and deleting managed Git worktrees from the Pi TUI.",
+  "author": {
+    "name": "Cristian Fonseca"
+  },
+  "type": "module",
+  "packageManager": "pnpm@11.2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/0xkuze/pi-worktrees.git"
+  },
+  "homepage": "https://github.com/0xkuze/pi-worktrees#readme",
+  "bugs": {
+    "url": "https://github.com/0xkuze/pi-worktrees/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "git",
+    "worktree",
+    "git-worktree",
+    "tui",
+    "developer-tools"
+  ],
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm build && pnpm test"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "dependencies": {
+    "effect": "latest"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "latest",
+    "@earendil-works/pi-tui": "latest",
+    "@types/node": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
