@@ -1,10 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
+import { Container, Text } from "@earendil-works/pi-tui";
 
 const DEFAULT_MAX_CONTEXT_CHARS = 20_000;
 const OUTPUT_DIR = join(tmpdir(), "pi-tool-output");
@@ -70,19 +69,18 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_result", async (event, ctx) => {
     const text = textFrom(event.content);
     const chars = Array.from(text).length;
-    const marker = { type: "text" as const, text: `↳ ${chars.toLocaleString()} chars` };
-    if (chars <= configuredThreshold(ctx.cwd)) {
-      return { content: [marker, ...event.content] };
-    }
+    const details = event.details && typeof event.details === "object" ? { ...event.details, toolOutputChars: chars } : { toolOutputChars: chars };
+    if (chars <= configuredThreshold(ctx.cwd)) return { details };
 
     await mkdir(OUTPUT_DIR, { recursive: true });
     const path = join(OUTPUT_DIR, `${event.toolName}-${randomUUID()}.txt`);
     await writeFile(path, text, { mode: 0o600 });
     return {
-      content: [...event.content, {
+      content: [{
         type: "text" as const,
-        text: `${marker.text}\nTool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.`,
+        text: `Tool output (${chars.toLocaleString()} chars) was saved outside context: ${path}\nUse Context Mode's ctx_execute_file to extract only the needed findings.`,
       }],
+      details,
     };
   });
 }
