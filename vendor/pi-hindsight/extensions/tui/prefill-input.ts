@@ -4,6 +4,7 @@ import {
   decodeKittyPrintable,
   getKeybindings,
   Input,
+  truncateToWidth,
   type Component,
 } from "@earendil-works/pi-tui";
 
@@ -76,7 +77,7 @@ export function createPrefillInputComponent(args: {
         `${keyHint("tui.select.confirm", "submit")}  ${keyHint("tui.select.cancel", "cancel")}`,
         "",
         ...border.render(width),
-      ];
+      ].map((line) => truncateToWidth(line, width));
     },
     invalidate() {
       input.invalidate();
