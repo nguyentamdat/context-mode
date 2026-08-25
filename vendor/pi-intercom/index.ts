@@ -52,7 +52,7 @@ const SUBAGENT_CHILD_AGENT_ENV = "PI_SUBAGENT_CHILD_AGENT";
 const SUBAGENT_CHILD_INDEX_ENV = "PI_SUBAGENT_CHILD_INDEX";
 const SUBAGENT_INTERCOM_SESSION_NAME_ENV = "PI_SUBAGENT_INTERCOM_SESSION_NAME";
 const SUBAGENT_SUPERVISOR_CHANNEL_DIR_ENV = "PI_SUBAGENT_SUPERVISOR_CHANNEL_DIR";
-
+const REMOTE_RELOAD_MESSAGE = "\u0000pi-intercom:reload:v1";
 interface ChildOrchestratorMetadata {
   orchestratorTarget: string;
   orchestratorSessionId?: string;
@@ -1237,6 +1237,15 @@ export default function piIntercomExtension(pi: ExtensionAPI) {
     }
     const receivedMessage = { ...message, receiverReceivedAt };
     emitMessageReceipt(receivedMessage.id, "receiver_received");
+    if (receivedMessage.content.text === REMOTE_RELOAD_MESSAGE) {
+      if (liveContext.isIdle()) {
+        emitMessageReceipt(receivedMessage.id, "acknowledged", "reloading session");
+        void liveContext.reload();
+      } else {
+        emitMessageReceipt(receivedMessage.id, "acknowledged", "session is busy; reload skipped");
+      }
+      return;
+    }
     if (replyWaiter) {
       const senderTarget = from.name || from.id;
       const fromMatches = senderTarget.toLowerCase() === replyWaiter.from.toLowerCase()
@@ -2137,13 +2146,14 @@ Usage:
   intercom({ action: "cancel", messageId: "..." })                 → Request cancellation of a sent message
   intercom({ action: "reply", message: "..." })                      → Reply to the active/single pending ask
   intercom({ action: "pending" })                                      → List unresolved inbound asks
-  intercom({ action: "status" })                  → Show connection status`,
+  intercom({ action: "status" })                  → Show connection status
+  intercom({ action: "reload", to: "name-or-id" })  → Reload an idle peer session`,
     promptSnippet:
       "Use to coordinate with other local pi sessions: list peers, send updates, ask for help, or check intercom connectivity.",
 
     parameters: Type.Object({
-      action: StringEnum(["list", "list-cwd", "send", "ask", "reply", "pending", "status", "cancel"] as const, {
-        description: "Action: 'list', 'list-cwd', 'send', 'ask', 'reply', 'pending', 'status', or 'cancel'",
+      action: StringEnum(["list", "list-cwd", "send", "ask", "reply", "pending", "status", "cancel", "reload"] as const, {
+        description: "Action: 'list', 'list-cwd', 'send', 'ask', 'reply', 'pending', 'status', 'cancel', or 'reload'",
       }),
       to: Type.Optional(Type.String({
         description: "Target session: name, full session ID, or the short id shown in parentheses by 'list' (a leading ID prefix resolves). For send/ask with cwd, omit to target the sole live session in that cwd or the newly opened project-pane session. For 'reply', disambiguates the pending ask.",
@@ -2308,6 +2318,20 @@ Usage:
               content: [{ type: "text", text: `Failed to cancel message: ${getErrorMessage(error)}` }],
               details: { error: true, messageId },
             };
+          }
+        }
+        case "reload": {
+          if (!to) return { content: [{ type: "text", text: "to is required for reload" }], details: { error: true } };
+          try {
+            const target = await resolveSessionTarget(connectedClient, to);
+            if (!target) return { content: [{ type: "text", text: `Session \"${to}\" is not connected.` }], details: { error: true } };
+            if (target === connectedClient.sessionId) return { content: [{ type: "text", text: "Cannot reload the current session remotely" }], details: { error: true } };
+            const result = await connectedClient.send(target, { text: REMOTE_RELOAD_MESSAGE });
+            return result.delivered
+              ? { content: [{ type: "text", text: `Reload requested for ${to}` }], details: deliveryDetails(result) }
+              : { content: [{ type: "text", text: `Reload request to ${to} was not delivered: ${result.reason ?? "unknown error"}` }], details: deliveryDetails(result) };
+          } catch (error) {
+            return { content: [{ type: "text", text: `Failed to request reload: ${getErrorMessage(error)}` }], details: { error: true } };
           }
         }
 
