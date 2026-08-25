@@ -6,6 +6,7 @@ import { writeMessage, createMessageReader } from "./framing.ts";
 import { isMessage, isMessageReceipt, isSessionId, isSessionRegistration } from "./protocol.ts";
 import {
   ensureIntercomRuntimeDir,
+  getTailscaleStateId,
   getBrokerListenTarget,
   getBrokerPortFilePath,
   getIntercomDirPath,
@@ -28,7 +29,7 @@ const LISTEN_TARGET = getBrokerListenTarget();
 const PID_PATH = join(INTERCOM_DIR, "broker.pid");
 const PORT_PATH = getBrokerPortFilePath(INTERCOM_DIR);
 const PENDING_ASKS_DIR = join(INTERCOM_DIR, "pending-asks");
-const BROKER_STATE_ID = process.env.PI_INTERCOM_TAILSCALE_TOKEN?.trim() || randomUUID();
+const BROKER_STATE_ID = getTailscaleStateId() || randomUUID();
 const MAX_SESSIONS = 128;
 const MAX_UNREGISTERED_CONNECTIONS = 32;
 const REGISTRATION_TIMEOUT_MS = 1000;

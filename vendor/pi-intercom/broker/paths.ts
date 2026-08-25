@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, readFileSync } from "fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync } from "fs";
 import { isAbsolute, join, resolve } from "path";
 import { homedir } from "os";
 
@@ -57,19 +57,32 @@ export function shouldUseWindowsTcpTransport(
   const legacyOptIn = env.PI_INTERCOM_TCP?.trim().toLowerCase();
   return legacyOptIn === "1" || legacyOptIn === "true";
 }
-function tailscaleEndpoint(env: NodeJS.ProcessEnv): BrokerTcpEndpoint | undefined {
-  const host = env.PI_INTERCOM_TAILSCALE_HOST?.trim();
-  const stateId = env.PI_INTERCOM_TAILSCALE_TOKEN?.trim();
-  const port = Number(env.PI_INTERCOM_TAILSCALE_PORT ?? 43765);
-  if (!host && !stateId && !env.PI_INTERCOM_TAILSCALE_PORT) return undefined;
+type TailscaleSettings = BrokerTcpEndpoint & { broker: boolean };
+
+function tailscaleSettings(env: NodeJS.ProcessEnv): TailscaleSettings | undefined {
+  const configPath = join(getIntercomDirPath(getAgentDirPath(env)), "config.json");
+  let saved: Record<string, unknown> | undefined;
+  try {
+    if (existsSync(configPath)) saved = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+  } catch { /* Invalid config is handled by the regular Intercom loader. */ }
+  const stored = saved?.tailscale as Record<string, unknown> | undefined;
+  const host = env.PI_INTERCOM_TAILSCALE_HOST?.trim() || (typeof stored?.host === "string" ? stored.host.trim() : "");
+  const stateId = env.PI_INTERCOM_TAILSCALE_TOKEN?.trim() || (typeof stored?.token === "string" ? stored.token.trim() : "");
+  const port = Number(env.PI_INTERCOM_TAILSCALE_PORT ?? stored?.port ?? 43765);
+  const broker = env.PI_INTERCOM_TAILSCALE_BROKER === "1" || stored?.broker === true;
+  if (!host && !stateId && !env.PI_INTERCOM_TAILSCALE_PORT && !stored) return undefined;
   if (!host || !stateId || !Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error("Set PI_INTERCOM_TAILSCALE_HOST, PI_INTERCOM_TAILSCALE_TOKEN, and a valid PI_INTERCOM_TAILSCALE_PORT.");
+    throw new Error("Configure Tailscale host, token, and a valid port with /intercom-config.");
   }
-  return { transport: "tcp", host, port, stateId };
+  return { transport: "tcp", host, port, stateId, broker };
 }
 
 export function isTailscaleRemote(env: NodeJS.ProcessEnv = process.env): boolean {
-  return Boolean(tailscaleEndpoint(env)) && env.PI_INTERCOM_TAILSCALE_BROKER !== "1";
+  return Boolean(tailscaleSettings(env)) && !tailscaleSettings(env)?.broker;
+}
+
+export function getTailscaleStateId(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  return tailscaleSettings(env)?.stateId;
 }
 export function getBrokerPortFilePath(intercomDir: string = getIntercomDirPath()): string {
   return join(intercomDir, "broker.port.json");
@@ -91,7 +104,7 @@ export function getBrokerConnectTarget(
   env: NodeJS.ProcessEnv = process.env,
   intercomDir: string = getIntercomDirPath(getAgentDirPath(env)),
 ): BrokerConnectTarget {
-  const tailscale = tailscaleEndpoint(env);
+  const tailscale = tailscaleSettings(env);
   if (tailscale) return tailscale;
   if (shouldUseWindowsTcpTransport(platform, env)) {
     const endpointFile = getBrokerPortFilePath(intercomDir);
@@ -123,8 +136,8 @@ export function getBrokerListenTarget(
   platform: NodeJS.Platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
 ): BrokerConnectTarget {
-  const tailscale = tailscaleEndpoint(env);
-  if (tailscale && env.PI_INTERCOM_TAILSCALE_BROKER === "1") return { ...tailscale, stateId: undefined };
+  const tailscale = tailscaleSettings(env);
+  if (tailscale && tailscale.broker) return { ...tailscale, stateId: undefined };
   if (tailscale) return getBrokerSocketPath(platform, getAgentDirPath(env));
   if (shouldUseWindowsTcpTransport(platform, env)) {
     return { transport: "tcp", host: INTERCOM_TCP_HOST, port: 0 };

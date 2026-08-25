@@ -5,7 +5,6 @@ import { Type } from "typebox";
 import { Text } from "@earendil-works/pi-tui";
 import { IntercomClient, type SendResult } from "./broker/client.ts";
 import { spawnBrokerIfNeeded } from "./broker/spawn.ts";
-import { isTailscaleRemote } from "./broker/paths.ts";
 import { SessionListOverlay } from "./ui/session-list.ts";
 import { ComposeOverlay, type ComposeResult } from "./ui/compose.ts";
 import { InlineMessageComponent } from "./ui/inline-message.ts";
@@ -28,7 +27,8 @@ import {
   type IntercomOutboxResultV1,
 } from "./extension-api.ts";
 import { ReplyTracker } from "./reply-tracker.ts";
-import { realpathSync } from "node:fs";
+import { chmodSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { getIntercomDirPath, isTailscaleRemote } from "./broker/paths.ts";
 import { resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 import { sameCwd } from "./cwd.ts";
@@ -2796,6 +2796,37 @@ Usage:
       notifyIfLive(ctx, `Message sent to ${targetLabel}`, "info", overlayGeneration);
     }
   }
+
+  async function configureIntercom(ctx: ExtensionContext): Promise<void> {
+    if (!ctx.hasUI) return;
+    const configPath = `${getIntercomDirPath()}/config.json`;
+    let saved: Record<string, unknown> = {};
+    try { saved = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>; } catch { /* Start with defaults. */ }
+    const current = saved.tailscale as Record<string, unknown> | undefined;
+    const role = await ctx.ui.select("Intercom transport", ["Local only", "Tailscale client", "Tailscale broker"]);
+    if (!role) return;
+    if (role === "Local only") {
+      delete saved.tailscale;
+    } else {
+      const host = await ctx.ui.input("Tailscale broker host:", typeof current?.host === "string" ? current.host : "100.108.131.96");
+      const port = await ctx.ui.input("Tailscale broker port:", String(current?.port ?? 43765));
+      const token = await ctx.ui.input("Shared Tailscale token:", typeof current?.token === "string" ? current.token : "");
+      if (!host?.trim() || !token?.trim() || !/^\d+$/.test(port ?? "")) {
+        ctx.ui.notify("Host, numeric port, and token are required.", "error");
+        return;
+      }
+      saved.tailscale = { host: host.trim(), port: Number(port), token: token.trim(), broker: role === "Tailscale broker" };
+    }
+    mkdirSync(getIntercomDirPath(), { recursive: true, mode: 0o700 });
+    writeFileSync(configPath, `${JSON.stringify(saved, null, 2)}\n`, { mode: 0o600 });
+    chmodSync(configPath, 0o600);
+    ctx.ui.notify("Intercom transport saved. Run /reload to reconnect.", "info");
+  }
+
+  pi.registerCommand("intercom-config", {
+    description: "Configure local or Tailscale Intercom transport",
+    handler: async (_args, ctx) => configureIntercom(ctx),
+  });
 
   pi.registerCommand("intercom", {
     description: "Open session intercom overlay",
