@@ -1,0 +1,28 @@
+{
+  "banks": {
+    "project": {
+      "enabled": true,
+      "derive": "manual",
+      "bankId": "omp"
+    },
+    "user": {
+      "enabled": true,
+      "bankId": "tada"
+    }
+  },
+  "notifications": {
+    "recall": true,
+    "retain": true
+  },
+  "hindsight": {
+    "apiKey": "<set-on-target>",
+    "timeoutMs": 50000
+  },
+  "recall": {
+    "storeLastRecall": true,
+    "storeLastRecallFailures": true
+  },
+  "status": {
+    "style": "nerdfont"
+  }
+}

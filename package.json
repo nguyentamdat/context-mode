@@ -1,6 +1,6 @@
 {
   "name": "pitada",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Portable Pi environment bundle",
   "keywords": [
     "pi-package"

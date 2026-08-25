@@ -1,0 +1,22 @@
+defaultProvider: openai-codex
+defaultModel: gpt-5.5
+defaultThinkingLevel: high
+terminal: 
+  showTerminalProgress: true
+enableInstallTelemetry: false
+treeFilterMode: all
+memory: 
+  backend: hindsight
+hindsight: 
+  apiUrl: http://127.0.0.1:8888
+  bankId: omp
+  scoping: per-project-tagged
+  autoRecall: true
+  autoRetain: true
+  retainMode: full-session
+  retainEveryNTurns: 3
+  recallBudget: mid
+  recallMaxTokens: <set-on-target>
+  mentalModelsEnabled: true
+  mentalModelAutoSeed: true
+lastChangelogVersion: 15.10.3

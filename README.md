@@ -1,12 +1,22 @@
 # pitada
 
-Một Pi package để cài lại bộ extension hiện dùng bằng một lệnh.
+Một Pi package để cài lại bộ extension và cấu hình hiện dùng bằng một package.
 
 ```bash
-pi install git:github.com/nguyentamdat/pitada@v0.1.0
+pi install git:github.com/nguyentamdat/pitada@v0.1.2
 ```
 
-Sau khi cài, đăng nhập/cấu hình riêng cho máy mới bằng `pi config`. Package này không chứa token, file `auth.json`, hay thiết lập cá nhân.
+## Khôi phục cấu hình
+
+Sau khi cài, chạy script đi kèm (script tự tạo backup cho từng file trước khi ghi đè):
+
+```bash
+node ~/.pi/agent/git/github.com/nguyentamdat/pitada/scripts/restore-config.mjs --apply
+```
+
+Trên Windows, dùng đường dẫn tương đương bên trong `%USERPROFILE%\.pi\agent\git\github.com\nguyentamdat\pitada`.
+
+Cấu hình được lưu gồm Pi settings, Hindsight, MCP, multi-pass, provider failover và backlog. `auth.json`, cache, session, telemetry và mọi giá trị token/secret **không** được commit. Khởi động lại Pi, đăng nhập lại và thay các giá trị `<set-on-target>` nếu có.
 
 ## Extension local được bundle
 
@@ -19,12 +29,12 @@ Sau khi cài, đăng nhập/cấu hình riêng cho máy mới bằng `pi config`
 
 Các Pi package phụ thuộc được khóa theo version trong `package.json` và bundle khi publish npm.
 
-## Phát hành
+## Cập nhật snapshot cấu hình
+
+Trên máy nguồn, sau khi thay đổi config không nhạy cảm:
 
 ```bash
-npm install
-npm version patch
-git push --follow-tags
+node scripts/snapshot-config.mjs
 ```
 
-Nếu publish lên npm private, dùng `npm publish --access restricted` rồi cài bằng `pi install npm:@nguyentamdat/pitada@<version>`.
+Review diff trước khi commit; script luôn bỏ giá trị theo các key token/secret/password/API key/access/refresh/cookie.
