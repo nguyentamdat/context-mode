@@ -118,7 +118,9 @@ export default function (pi: ExtensionAPI) {
     refreshing = true;
     try {
       const results = await Promise.all(accounts().map(fetchUsage));
-      currentCtx.ui.setStatus(STATUS_KEY, `Codex: ${results.find((item) => item.provider === activeProvider)?.email ?? "no active account"}`);
+      const active = results.find((item) => item.provider === activeProvider);
+      const activeQuota = active?.error ? active.error : active ? `5h:${active.fiveHour ?? "?"}% · 7d:${active.weekly ?? "?"}%` : "no active account";
+      currentCtx.ui.setStatus(STATUS_KEY, `Codex ${results.length} accounts · ${active?.email ?? "no active account"} · ${activeQuota}`);
       currentCtx.ui.setWidget(STATUS_KEY, ["Codex usage", ...render(results, activeProvider).split("\n")]);
     }
     finally { refreshing = false; }
