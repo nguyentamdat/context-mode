@@ -10,7 +10,7 @@ const CACHE_FILE = join(AGENT_DIR, "codex-usage-cache.json");
 
 type Auth = { type?: string; access?: string; accountId?: string };
 type Account = { provider: string; label: string; auth?: Auth };
-type Usage = { provider: string; email: string; quotaLabel?: string; weekly?: number; weeklyResetsAt?: number; error?: string };
+type Usage = { provider: string; email: string; quotaLabel?: string; weekly?: number; weeklyResetsAt?: number; fiveHour?: number; fiveHourResetsAt?: number; error?: string };
 type Cache = Record<string, { cachedAt: number; usage: Usage }>;
 
 function json(path: string): Record<string, unknown> {
@@ -58,7 +58,7 @@ function cache(): Cache { return json(CACHE_FILE) as Cache; }
 function saveCache(data: Cache): void { try { writeFileSync(CACHE_FILE, `${JSON.stringify(data, null, 2)}\n`, { mode: 0o600 }); } catch {} }
 async function fetchUsage(account: Account): Promise<Usage> {
   const cached = cache()[account.provider];
-  if (cached?.usage.weekly !== undefined && Date.now() - cached.cachedAt < REFRESH_MS) return cached.usage;
+  if (cached?.usage.weekly !== undefined && cached.usage.fiveHour !== undefined && Date.now() - cached.cachedAt < REFRESH_MS) return cached.usage;
   if (!account.auth?.access) return { provider: account.provider, email: account.label, error: "login" };
   const claims = jwt(account.auth.access);
   const authClaim = get(claims, "https://api.openai.com/auth");
@@ -71,18 +71,19 @@ async function fetchUsage(account: Account): Promise<Usage> {
     if (!response.ok) return { provider: account.provider, email: emailFrom(account.auth), error: `HTTP ${response.status}` };
     const data = await response.json() as { email?: unknown; rate_limit?: { primary_window?: unknown; secondary_window?: unknown } };
     const windows = [data.rate_limit?.primary_window, data.rate_limit?.secondary_window].filter(Boolean) as Array<{ limit_window_seconds?: number; used_percent?: number; reset_at?: number }>;
-    const quotaWindow = windows.find(w => Math.abs((w.limit_window_seconds ?? 0) - 604_800) <= 120)
+    const weeklyWindow = windows.find(w => Math.abs((w.limit_window_seconds ?? 0) - 604_800) <= 120)
       ?? windows.sort((a, b) => (b.limit_window_seconds ?? 0) - (a.limit_window_seconds ?? 0))[0];
-    const seconds = quotaWindow?.limit_window_seconds;
+    const fiveHourWindow = windows.find(w => Math.abs((w.limit_window_seconds ?? 0) - 18_000) <= 120);
+    const seconds = weeklyWindow?.limit_window_seconds;
     const quotaLabel = seconds && seconds % 86_400 === 0 ? `${seconds / 86_400}d` : "quota";
-    const usage = { provider: account.provider, email: typeof data.email === "string" ? data.email : emailFrom(account.auth), quotaLabel, weekly: remaining(quotaWindow), weeklyResetsAt: resetAt(quotaWindow) };
+    const usage = { provider: account.provider, email: typeof data.email === "string" ? data.email : emailFrom(account.auth), quotaLabel, weekly: remaining(weeklyWindow), weeklyResetsAt: resetAt(weeklyWindow), fiveHour: remaining(fiveHourWindow), fiveHourResetsAt: resetAt(fiveHourWindow) };
     saveCache({ ...cache(), [account.provider]: { cachedAt: Date.now(), usage } });
     return usage;
   } catch (error) { return { provider: account.provider, email: emailFrom(account.auth), error: error instanceof Error ? error.message : "fetch failed" }; }
 }
 function renderAccount(r: Usage, activeProvider?: string): string {
   const active = r.provider === activeProvider ? "*" : "";
-  const quota = r.error ? r.error : `${r.quotaLabel ?? "7d"}:${r.weekly ?? "?"}% ↻ ${formatReset(r.weeklyResetsAt)}`;
+  const quota = r.error ? r.error : `5h:${r.fiveHour ?? "?"}% ↻ ${formatReset(r.fiveHourResetsAt)} · ${r.quotaLabel ?? "7d"}:${r.weekly ?? "?"}% ↻ ${formatReset(r.weeklyResetsAt)}`;
   return `${active}${r.email} ${quota}`;
 }
 function render(results: Usage[], activeProvider?: string): string {
