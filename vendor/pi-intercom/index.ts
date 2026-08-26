@@ -2441,12 +2441,6 @@ Usage:
             };
           }
 
-          if (replyWaiter) {
-            return {
-              content: [{ type: "text", text: "Already waiting for a reply" }],
-              details: { error: true },
-            };
-          }
 
           if (_signal?.aborted) {
             return {
@@ -2454,10 +2448,8 @@ Usage:
               details: { error: true },
             };
           }
-          let replyPromise: Promise<Message> | null = null;
           let deliveryState = "created";
           let questionId: string | null = null;
-
           try {
             if (openProjectPaneIfMissing && !cwd) {
               return {
@@ -2492,15 +2484,7 @@ Usage:
                 details: { error: true },
               };
             }
-            if (replyWaiter) {
-              return {
-                content: [{ type: "text", text: "Already waiting for a reply" }],
-                details: { error: true },
-              };
-            }
             questionId = randomUUID();
-            replyPromise = waitForReply(sendTo, questionId, _signal, () => connectedClient.cancelAsk(questionId!), () => latestDeliveryState(questionId, deliveryState));
-            replyPromise.catch(() => undefined);
             const sendResult = await connectedClient.send(sendTo, {
               messageId: questionId,
               text: message,
@@ -2514,14 +2498,6 @@ Usage:
             deliveryState = sendResult.delivery;
             if (!sendResult.delivered) {
               const errorText = sendResult.reason ?? "Session may not exist or has disconnected.";
-              rejectReplyWaiter(new Error(`Message to "${targetDisplay}" was not delivered: ${errorText}`));
-              if (replyPromise) {
-                try {
-                  await replyPromise;
-                } catch {
-                  // The waiter was already rejected above. Keep the delivery failure as the only error here.
-                }
-              }
               return {
                 content: [{ type: "text", text: `Message to "${targetDisplay}" was not delivered: ${errorText}` }],
                 details: { error: true, ...deliveryDetails(sendResult) },
@@ -2533,30 +2509,11 @@ Usage:
               messageId: sendResult.id,
               timestamp: Date.now(),
             });
-            const replyMessage = await replyPromise;
-            const replyText = replyMessage.content.text;
-            const replyAttachments = replyMessage.content.attachments?.length
-              ? formatAttachments(replyMessage.content.attachments)
-              : "";
-            pi.appendEntry("intercom_received", {
-              from: targetDisplay,
-              message: { text: replyText, attachments: replyMessage.content.attachments },
-              messageId: replyMessage.id,
-              timestamp: replyMessage.timestamp,
-            });
             return {
-              content: [{ type: "text", text: `**Reply from ${targetDisplay}:**\n${replyText}${replyAttachments}` }],
-              details: target.projectPane ? { openedProjectPane: true, paneId: target.projectPane.paneId, projectRoot: target.projectPane.projectRoot } : {},
+              content: [{ type: "text", text: `Ask sent to ${targetDisplay}; reply will arrive asynchronously.` }],
+              details: { ...deliveryDetails(sendResult), pending: true, messageId: questionId, ...(target.projectPane ? { openedProjectPane: true, paneId: target.projectPane.paneId, projectRoot: target.projectPane.projectRoot } : {}) },
             };
           } catch (error) {
-            rejectReplyWaiter(toError(error));
-            if (replyPromise) {
-              try {
-                await replyPromise;
-              } catch {
-                // The waiter is cleanup-only on this path. The real failure is the one from the outer catch.
-              }
-            }
             return {
               content: [{ type: "text", text: `Failed: ${getErrorMessage(error)}` }],
               details: { error: true, ...(questionId ? { messageId: questionId, deliveryState: latestDeliveryState(questionId, deliveryState) } : {}) },
