@@ -1,6 +1,6 @@
 import { spawn as nodeSpawn, type SpawnOptions } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { createWriteStream, existsSync } from 'node:fs';
+import { createWriteStream, existsSync, readFileSync } from 'node:fs';
 import { mkdir, readdir, realpath, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
@@ -771,6 +771,12 @@ export class BackgroundTaskRegistry {
   }
 
   allTasks(): BgTask[] {
+    if (this.runtimeDir) {
+      for (const task of this.tasks.values()) {
+        if (!task.foreign) continue;
+        try { Object.assign(task, JSON.parse(readFileSync(task.metadataAbsPath, 'utf8'))); } catch { /* Metadata may be mid-write. */ }
+      }
+    }
     return [...this.tasks.values()];
   }
 
@@ -1582,6 +1588,13 @@ export class BackgroundTaskRegistry {
     task.killKind = kind;
     if (reason) task.error = reason;
     this.requestKill(task, 'SIGTERM');
+    if (task.foreign) {
+      task.status = 'killed';
+      task.endTime = this.now();
+      await this.writeMetadata(task);
+      this.onChange();
+      return task;
+    }
     const stopWaitMs = task.managedStopWaitMs ?? this.stopWaitMs;
     const stopped =
       this.platform === 'win32' && task.managedCancel === undefined
@@ -2148,9 +2161,6 @@ export class BackgroundTaskRegistry {
       task.killSignalSent = true;
       return;
     }
-    if (!task.child) {
-      throw new Error(`Task ${task.id} has no child process handle`);
-    }
     if (!task.pid) {
       throw new Error(`Task ${task.id} has no process id`);
     }
@@ -2172,8 +2182,7 @@ export class BackgroundTaskRegistry {
         `process group kill failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
-
-    if (!killed) {
+    if (!killed && task.child) {
       try {
         task.child.kill(signal);
         killed = true;
