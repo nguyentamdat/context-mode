@@ -160,6 +160,7 @@ export interface BgTask extends Omit<BgTaskSnapshot, 'name'> {
   waiters: Array<() => void>;
   /** Task was loaded from the machine-wide registry and is owned by another Pi session. */
   foreign?: boolean;
+}
 
 export type CompletionDeliveryMode =
   | 'notification-and-wake'
