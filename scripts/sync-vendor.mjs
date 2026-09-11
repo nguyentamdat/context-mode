@@ -43,8 +43,15 @@ if (vendor.upstreamPath) {
   }
 }
 
-const split = run("git", ["ls-remote", forkUrl, `refs/heads/${vendor.ref}`]).split(/\s+/)[0];
-if (!split) throw new Error(`Missing ${vendor.fork}@${vendor.ref}`);
+const resolveRef = (ref) => {
+  const remote = run("git", ["ls-remote", forkUrl, ref, `refs/heads/${ref}`, `refs/tags/${ref}`]).split(/\s+/)[0];
+  if (remote) return remote;
+  // npm publishes some versions by commit rather than tag.
+  run("git", ["fetch", "--quiet", "--no-tags", forkUrl, ref]);
+  return git(["rev-parse", "FETCH_HEAD"]);
+};
+const split = resolveRef(adopt ? vendor.baseline : vendor.ref);
+if (!split) throw new Error(`Missing ${vendor.fork}@${adopt ? vendor.baseline : vendor.ref}`);
 
 if (adopt) {
   const message = `Adopt ${name} subtree baseline\n\ngit-subtree-dir: ${vendor.path}\ngit-subtree-split: ${split}\n`;

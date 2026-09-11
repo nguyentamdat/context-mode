@@ -3,66 +3,77 @@
     "path": "vendor/context-mode",
     "fork": "nguyentamdat/context-mode",
     "upstream": "mksglu/context-mode",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "v1.0.169"
   },
   "pi-background-tasks": {
     "path": "vendor/pi-background-tasks",
     "fork": "nguyentamdat/pi-background-tasks",
     "upstream": "ismailsaleekh/pi-background-tasks",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "37fdcf0276bcc1e89ab73fe2fb63146fb4367ccd"
   },
   "pi-codex-multi": {
     "path": "vendor/pi-codex-multi",
     "fork": "nguyentamdat/pi-codex-multi",
     "upstream": "thelastbodhisattva/pi-codex-multi",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "38b33cf0a63982bd39f2c22e0645e3d11c2b0d8f"
   },
   "pi-fff": {
     "path": "vendor/pi-fff",
     "fork": "nguyentamdat/fff",
     "upstream": "dmtrKovalenko/fff",
     "ref": "pitada-pi-fff",
+    "baseline": "pitada-pi-fff-base-v0.10.5",
     "upstreamPath": "packages/pi-fff"
   },
   "pi-hashline-edit-pro": {
     "path": "vendor/pi-hashline-edit-pro",
     "fork": "nguyentamdat/pi-hashline-edit-pro",
     "upstream": "YuGiMob/pi-hashline-edit-pro",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "39deae92ddace2aeba5d89537318b87375747c30"
   },
   "pi-hindsight": {
     "path": "vendor/pi-hindsight",
     "fork": "nguyentamdat/pi-hindsight",
     "upstream": "luxus/pi-hindsight",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "v0.12.0"
   },
   "pi-intercom": {
     "path": "vendor/pi-intercom",
     "fork": "nguyentamdat/pi-intercom",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "main"
   },
   "pi-mcp-adapter": {
     "path": "vendor/pi-mcp-adapter",
     "fork": "nguyentamdat/pi-mcp-adapter",
     "upstream": "nicobailon/pi-mcp-adapter",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "v2.27.0"
   },
   "pi-web-access": {
     "path": "vendor/pi-web-access",
     "fork": "nguyentamdat/pi-web-access",
     "upstream": "nicobailon/pi-web-access",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "v0.24.2"
   },
   "pi-worktrees": {
     "path": "vendor/pi-worktrees",
     "fork": "nguyentamdat/pi-worktrees",
     "upstream": "0xkuze/pi-worktrees",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "1c4797d5cf381b5292a58077ac97d9d2cf856cc6"
   },
   "ponytail": {
     "path": "vendor/ponytail",
     "fork": "nguyentamdat/ponytail",
     "upstream": "DietrichGebert/ponytail",
-    "ref": "main"
+    "ref": "main",
+    "baseline": "v4.9.0"
   }
 }
