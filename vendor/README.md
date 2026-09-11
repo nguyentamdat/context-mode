@@ -17,3 +17,17 @@ These directories are source copies maintained by Pitada. Their original package
 | `pi-background-tasks` | `pi-background-tasks` | 2.4.2 | ISC |
 
 `pi-worktrees` has no declared license: do not redistribute it without upstream permission. Context Mode's Elastic-2.0 terms apply to its copy.
+
+## Upstream workflow
+
+Each vendor is a Git subtree backed by a fork under `nguyentamdat`. The authoritative mapping is [`upstreams.json`](./upstreams.json); it records the vendor path, fork, upstream, and branch.
+
+```bash
+# First-time migration only: record the current copy as the subtree baseline.
+node scripts/sync-vendor.mjs pi-worktrees --adopt
+
+# Sync the fork from its upstream and squash-merge the update into Pitada.
+node scripts/sync-vendor.mjs pi-worktrees --apply
+```
+
+Do local changes in Pitada, then push the subtree to the fork with `git subtree push --prefix=vendor/<name> https://github.com/nguyentamdat/<fork>.git <branch>`. Open a PR from that fork to its upstream when appropriate. `pi-intercom` has no published upstream repository; `nguyentamdat/pi-intercom` is its canonical source.

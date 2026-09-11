@@ -1,0 +1,68 @@
+{
+  "context-mode": {
+    "path": "vendor/context-mode",
+    "fork": "nguyentamdat/context-mode",
+    "upstream": "mksglu/context-mode",
+    "ref": "main"
+  },
+  "pi-background-tasks": {
+    "path": "vendor/pi-background-tasks",
+    "fork": "nguyentamdat/pi-background-tasks",
+    "upstream": "ismailsaleekh/pi-background-tasks",
+    "ref": "main"
+  },
+  "pi-codex-multi": {
+    "path": "vendor/pi-codex-multi",
+    "fork": "nguyentamdat/pi-codex-multi",
+    "upstream": "thelastbodhisattva/pi-codex-multi",
+    "ref": "main"
+  },
+  "pi-fff": {
+    "path": "vendor/pi-fff",
+    "fork": "nguyentamdat/fff",
+    "upstream": "dmtrKovalenko/fff",
+    "ref": "pitada-pi-fff",
+    "upstreamPath": "packages/pi-fff"
+  },
+  "pi-hashline-edit-pro": {
+    "path": "vendor/pi-hashline-edit-pro",
+    "fork": "nguyentamdat/pi-hashline-edit-pro",
+    "upstream": "YuGiMob/pi-hashline-edit-pro",
+    "ref": "main"
+  },
+  "pi-hindsight": {
+    "path": "vendor/pi-hindsight",
+    "fork": "nguyentamdat/pi-hindsight",
+    "upstream": "luxus/pi-hindsight",
+    "ref": "main"
+  },
+  "pi-intercom": {
+    "path": "vendor/pi-intercom",
+    "fork": "nguyentamdat/pi-intercom",
+    "ref": "main"
+  },
+  "pi-mcp-adapter": {
+    "path": "vendor/pi-mcp-adapter",
+    "fork": "nguyentamdat/pi-mcp-adapter",
+    "upstream": "nicobailon/pi-mcp-adapter",
+    "ref": "main"
+  },
+  "pi-web-access": {
+    "path": "vendor/pi-web-access",
+    "fork": "nguyentamdat/pi-web-access",
+    "upstream": "nicobailon/pi-web-access",
+    "ref": "main"
+  },
+  "pi-worktrees": {
+    "path": "vendor/pi-worktrees",
+    "fork": "nguyentamdat/pi-worktrees",
+    "upstream": "0xkuze/pi-worktrees",
+    "ref": "main"
+  },
+  "ponytail": {
+    "path": "vendor/ponytail",
+    "fork": "nguyentamdat/ponytail",
+    "upstream": "DietrichGebert/ponytail",
+    "ref": "main"
+  }
+}
