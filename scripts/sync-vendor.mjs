@@ -19,7 +19,7 @@ const vendor = vendors[name];
 const run = (command, args, options = {}) => execFileSync(command, args, {
   cwd: root,
   encoding: "utf8",
-  stdio: ["ignore", "pipe", "inherit"],
+  stdio: ["pipe", "pipe", "inherit"],
   ...options,
 }).trim();
 const git = (args, options) => run("git", args, options);
