@@ -32,7 +32,8 @@
     "path": "vendor/pi-hashline-edit-pro",
     "fork": "nguyentamdat/pi-hashline-edit-pro",
     "upstream": "YuGiMob/pi-hashline-edit-pro",
-    "ref": "main",
+    "ref": "master",
+    "upstreamRef": "master",
     "baseline": "39deae92ddace2aeba5d89537318b87375747c30"
   },
   "pi-hindsight": {

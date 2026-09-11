@@ -29,7 +29,7 @@ if (git(["status", "--porcelain"])) throw new Error("Working tree must be clean.
 
 if (vendor.upstream) {
   console.log(`Syncing ${vendor.fork} from ${vendor.upstream}…`);
-  run("gh", ["repo", "sync", vendor.fork, "--source", vendor.upstream, "--branch", "main"]);
+  run("gh", ["repo", "sync", vendor.fork, "--source", vendor.upstream, "--branch", vendor.upstreamRef ?? "main"]);
 }
 
 if (vendor.upstreamPath) {
