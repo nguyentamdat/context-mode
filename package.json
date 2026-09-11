@@ -1,93 +1,59 @@
 {
-  "name": "pitada",
-  "version": "0.1.21",
-  "description": "Portable Pi environment bundle",
+  "name": "pi-worktrees",
+  "version": "0.1.0",
+  "description": "A polished Pi extension for creating, switching, returning from, and deleting managed Git worktrees from the Pi TUI.",
+  "author": {
+    "name": "Cristian Fonseca"
+  },
+  "type": "module",
+  "packageManager": "pnpm@11.2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/0xkuze/pi-worktrees.git"
+  },
+  "homepage": "https://github.com/0xkuze/pi-worktrees#readme",
+  "bugs": {
+    "url": "https://github.com/0xkuze/pi-worktrees/issues"
+  },
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "git",
+    "worktree",
+    "git-worktree",
+    "tui",
+    "developer-tools"
   ],
-  "license": "UNLICENSED",
   "files": [
-    "extensions",
-    "config",
-    "scripts",
-    "vendor",
-    "docs",
+    "src",
     "README.md"
   ],
-  "engines": {
-    "node": ">=20"
+  "publishConfig": {
+    "access": "public"
   },
-  "dependencies": {
-    "@clack/prompts": "1.7.0",
-    "@ff-labs/fff-bun": "0.10.5",
-    "@ff-labs/fff-node": "0.10.5",
-    "@mixmark-io/domino": "2.2.0",
-    "@modelcontextprotocol/client": "2.0.0",
-    "@modelcontextprotocol/core": "2.0.0",
-    "@modelcontextprotocol/ext-apps": "1.7.5",
-    "@modelcontextprotocol/sdk": "1.30.0",
-    "@mozilla/readability": "0.6.0",
-    "@napi-rs/keyring": "1.3.0",
-    "@vectorize-io/hindsight-client": "0.9.1",
-    "ajv": "8.20.0",
-    "ajv-formats": "3.0.1",
-    "better-sqlite3": "12.11.1",
-    "cross-spawn": "7.0.6",
-    "diff": "8.0.4",
-    "effect": "3.22.1",
-    "file-type": "21.3.4",
-    "jsonc-parser": "3.3.1",
-    "linkedom": "0.16.11",
-    "open": "10.2.0",
-    "p-limit": "6.2.0",
-    "picocolors": "1.1.1",
-    "promise.try": "2.0.1",
-    "recheck": "4.5.0",
-    "smol-toml": "1.8.0",
-    "strip-json-comments": "5.0.3",
-    "tsx": "4.23.12",
-    "turndown": "7.2.4",
-    "turndown-plugin-gfm": "1.0.2",
-    "typebox": "1.3.18",
-    "undici": "8.10.0",
-    "unpdf": "1.8.1",
-    "xxhash-wasm": "1.1.0",
-    "zod": "3.25.76"
-  },
-  "peerDependencies": {
-    "@earendil-works/pi-agent-core": "*",
-    "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
-    "typebox": "*"
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm build && pnpm test"
   },
   "pi": {
     "extensions": [
-      "./extensions/backlog-md/index.ts",
-      "./extensions/cbmem/index.ts",
-      "./extensions/codex-usage-status/index.ts",
-      "./extensions/herdr-agent-state/index.ts",
-      "./extensions/local-telemetry/index.ts",
-      "./extensions/tool-output-chars/index.ts",
-      "./vendor/context-mode/build/adapters/pi/extension.js",
-      "./vendor/pi-hashline-edit-pro/index.ts",
-      "./vendor/pi-hindsight/extensions",
-      "./vendor/pi-codex-multi/extensions/multi-sub.ts",
-      "./vendor/pi-web-access/index.ts",
-      "./vendor/pi-mcp-adapter/index.ts",
-      "./vendor/pi-fff/src/index.ts",
-      "./vendor/ponytail/pi-extension/index.js",
-      "./vendor/pi-intercom/index.ts",
-      "./vendor/pi-worktrees/src/index.ts",
-      "./vendor/pi-background-tasks/extensions/anthropic-attribution.ts",
-      "./vendor/pi-background-tasks/extensions/background-tasks.ts"
-    ],
-    "skills": [
-      "./vendor/context-mode/skills",
-      "./vendor/pi-hindsight/skills",
-      "./vendor/pi-mcp-adapter/skills",
-      "./vendor/ponytail/skills",
-      "./vendor/pi-intercom/skills"
+      "./src/index.ts"
     ]
+  },
+  "dependencies": {
+    "effect": "latest"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "latest",
+    "@earendil-works/pi-tui": "latest",
+    "@types/node": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
   }
 }
